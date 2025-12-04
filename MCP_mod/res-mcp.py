@@ -1,4 +1,5 @@
 # /// script
+# requires-python = ">=3.10"
 # dependencies = [
 #     "mcp",
 #     "httpx",
@@ -13,6 +14,7 @@ import socket
 import subprocess
 import json
 import tempfile
+from datetime import datetime
 from dataclasses import dataclass
 from typing import Any, Optional
 
@@ -894,39 +896,40 @@ def monitor_tool(func):
     """
     @functools.wraps(func)
     async def wrapper(*args, **kwargs):
-        start_time = time.time()
         tool_name = func.__name__
+        start_time = time.time()
         result = None
-        error = None
-        
         try:
             result = await func(*args, **kwargs)
             return result
         except Exception as e:
-            error = str(e)
+            result = f"Error: {str(e)}"
             raise e
         finally:
             duration = time.time() - start_time
-            
-            # Prepare log data
-            log_data = {
-                "tool": tool_name,
-                "args": kwargs, # FastMCP passes args as kwargs usually
-                "result": str(result) if result else str(error),
-                "timestamp": datetime.now().isoformat(),
-                "duration": duration
-            }
-            
-            # Send to middleware asynchronously (fire and forget)
             try:
-                # We use httpx to send the data. 
-                # Since we are in an async function, we can await it, 
-                # but to avoid slowing down the tool, we might want to just log errors if it fails.
+                # Get ResDB metrics
+                resdb_metrics = {}
+                # Check if contract_client is available (it's initialized later in the script)
+                if 'contract_client' in globals():
+                    try:
+                        resdb_metrics = contract_client.get_consensus_metrics()
+                    except Exception as e:
+                        logger.warning(f"Failed to get consensus metrics: {e}")
+
+                # Send metrics to middleware
                 async with httpx.AsyncClient() as client:
                     await client.post(
-                        "http://localhost:3000/api/v1/mcp/prompts", 
-                        json=log_data,
-                        timeout=0.5 # Short timeout to not block
+                        "http://localhost:3000/api/v1/mcp/prompts",
+                        json={
+                            "tool": tool_name,
+                            "args": kwargs,
+                            "result": str(result)[:1000] if result else "None",
+                            "timestamp": datetime.now().isoformat(),
+                            "duration": duration,
+                            "resdb_metrics": resdb_metrics
+                        },
+                        timeout=5.0
                     )
             except Exception as e:
                 # Just log locally if middleware is down, don't break the tool
