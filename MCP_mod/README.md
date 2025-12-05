@@ -22,7 +22,7 @@ We provide two MCP server implementations to suit different needs:
 *   `deploy_contract`
 *   `execute_contract`
 
-### 2. Full Server (`res-mcp2.py`)
+### 2. Full Server (`res-mcp.py`)
 **Best for:** System administrators and advanced users who need full control and observability.
 **Features:**
 *   **Smart Contract Operations**
