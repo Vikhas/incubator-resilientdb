@@ -14,7 +14,7 @@ This directory contains the **Model Context Protocol (MCP)** server for Resilien
 
 We provide two MCP server implementations to suit different needs:
 
-### 1. Minimal Server (`mcp.py`)
+### 1. Minimal Server (`simple_mcp_server.py`)
 **Best for:** Smart contract developers who want a lightweight, focused experience.
 **Features:**
 *   `create_account`
@@ -22,13 +22,37 @@ We provide two MCP server implementations to suit different needs:
 *   `deploy_contract`
 *   `execute_contract`
 
-### 2. Full Server (`res-mcp.py`)
+### 2. Full Server (`res-mcp2.py`)
 **Best for:** System administrators and advanced users who need full control and observability.
 **Features:**
-*   **All Smart Contract Operations** (same as above)
-*   **System Management**: `health_check`, `start_replicas`, `validate_config`, `archive_logs`
-*   **Observability**: `get_transaction_history`, `list_all_accounts`, `search_logs`, `get_consensus_metrics`
-*   **Database**: `commit_transaction`, `get_transaction`, `introspect_graphql`
+*   **Smart Contract Operations**
+    *   `create_account`: Generate new ResilientDB accounts.
+    *   `compile_contract`: Compile Solidity (`.sol`) files to JSON artifacts.
+    *   `deploy_contract`: Deploy compiled contracts to the blockchain.
+    *   `execute_contract`: Call functions on deployed contracts.
+
+*   **System Management & Health**
+    *   `health_check`: Comprehensive check of all replicas and APIs (REST/GraphQL).
+    *   `check_replicas_status`: Verify if the 4 consensus nodes and 1 client proxy are running.
+    *   `start_replicas`: Bootstrap or restart the local cluster (Resets blockchain state).
+    *   `validate_config`: Check configuration files for errors.
+
+*   **Observability & Debugging**
+    *   `get_server_logs`: Read recent logs from specific consensus nodes.
+    *   `get_client_logs`: Read logs from the client proxy.
+    *   `search_logs`: Search for specific patterns across all logs.
+    *   `archive_logs`: Zip all current logs into a timestamped file.
+
+*   **Analytics & Metrics**
+    *   `benchmark_throughput`: Stress test to measure TPS and latency.
+    *   `get_consensus_metrics`: Extract internal PBFT state (View, Sequence, Primary ID).
+    *   `list_all_accounts`: Scan logs to find all created account addresses.
+    *   `get_transaction_history`: Reconstruct history of contract deployments/executions.
+
+*   **Database Operations**
+    *   `commit_transaction`: Write key-value pairs to the blockchain.
+    *   `get_transaction`: Retrieve transactions by ID.
+    *   `introspect_graphql`: Discover available data types in the GraphQL API.
 
 ---
 
@@ -74,14 +98,14 @@ Before using the MCP server, you must have ResilientDB built and running.
         "resilientdb": {
           "command": "/usr/bin/python3",
           "args": [
-            "/ABSOLUTE/PATH/TO/resilientdb/MCP_mod/mcp.py"
+            "/ABSOLUTE/PATH/TO/resilientdb/MCP_mod/simple_mcp_server.py"
           ]
         }
       }
     }
     ```
     *   Replace `/ABSOLUTE/PATH/TO` with the full path to your `resilientdb` directory.
-    *   **Note**: Use `mcp.py` for the lightweight smart contract server. Use `res-mcp.py` if you need advanced system management tools.
+    *   **Note**: Use `simple_mcp_server.py` for the lightweight smart contract server. Use `res-mcp2.py` if you need advanced system management tools.
 
 3.  **Restart Claude Desktop**.
 
@@ -120,7 +144,7 @@ Ask Claude:
 ---
 
 ## 📂 File Structure
-*   **`mcp.py`**: Minimal MCP server for smart contract operations.
-*   **`res-mcp.py`**: Full-featured MCP server (includes system management & debugging).
+*   **`simple_mcp_server.py`**: Minimal MCP server for smart contract operations.
+*   **`res-mcp2.py`**: Full-featured MCP server (includes system management & debugging).
 *   **`requirements.txt`**: Python dependencies.
 *   **`README.md`**: This guide.
